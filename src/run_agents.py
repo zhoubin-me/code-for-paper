@@ -27,6 +27,5 @@ for i in range(NUM_THREADS):
 
 for fname in glob(path.join(agent_configs, "*.json")):
     q.put(fname)
-    break
 
 q.join()
