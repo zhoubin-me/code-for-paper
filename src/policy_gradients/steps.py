@@ -315,30 +315,35 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
     grad = ch.autograd.grad(surr_rew, net.parameters(), retain_graph=True)
     flat_grad = flatten(grad)
 
-    # Make fisher product estimator
-    num_samples = int(all_states.shape[0] * params.FISHER_FRAC_SAMPLES)
-    selected = np.random.choice(range(all_states.shape[0]), num_samples, replace=False)
-    
-    detached_selected_pds = select_prob_dists(pds, selected, detach=True)
-    selected_pds = select_prob_dists(pds, selected, detach=False)
-    
-    kl = net.calc_kl(detached_selected_pds, selected_pds).mean()
-    g = flatten(ch.autograd.grad(kl, net.parameters(), create_graph=True))
-    def fisher_product(x, damp_coef=1.):
-        contig_flat = lambda q: ch.cat([y.contiguous().view(-1) for y in q])
-        z = g @ x
-        hv = ch.autograd.grad(z, net.parameters(), retain_graph=True)
-        return contig_flat(hv).detach() + x*params.DAMPING * damp_coef
 
-    # Find KL constrained gradient step
-    step = cg_solve(fisher_product, flat_grad, params.CG_STEPS)
+    if params.USE_CONJ:
+        # Make fisher product estimator
+        num_samples = int(all_states.shape[0] * params.FISHER_FRAC_SAMPLES)
+        selected = np.random.choice(range(all_states.shape[0]), num_samples, replace=False)
 
-    max_step_coeff = (2 * params.MAX_KL / (step @ fisher_product(step)))**(0.5)
-    max_trpo_step = max_step_coeff * step
+        detached_selected_pds = select_prob_dists(pds, selected, detach=True)
+        selected_pds = select_prob_dists(pds, selected, detach=False)
 
-    if store and params.SHOULD_LOG_KL:
-        kl_approximation_logging(all_states, pds, flat_grad, step, net, store)
-        kl_vs_second_order_approx(all_states, pds, net, max_trpo_step, params, store, opt_step)
+        kl = net.calc_kl(detached_selected_pds, selected_pds).mean()
+        g = flatten(ch.autograd.grad(kl, net.parameters(), create_graph=True))
+        def fisher_product(x, damp_coef=1.):
+            contig_flat = lambda q: ch.cat([y.contiguous().view(-1) for y in q])
+            z = g @ x
+            hv = ch.autograd.grad(z, net.parameters(), retain_graph=True)
+            return contig_flat(hv).detach() + x*params.DAMPING * damp_coef
+
+        # Find KL constrained gradient step
+        step = cg_solve(fisher_product, flat_grad, params.CG_STEPS)
+
+        max_step_coeff = (2 * params.MAX_KL / (step @ fisher_product(step)))**(0.5)
+        max_trpo_step = max_step_coeff * step
+
+        if store and params.SHOULD_LOG_KL:
+            kl_approximation_logging(all_states, pds, flat_grad, step, net, store)
+            kl_vs_second_order_approx(all_states, pds, net, max_trpo_step, params, store, opt_step)
+    else:
+        max_trpo_step = params.PPO_LR * flat_grad.clone()
+
 
     # Backtracking line search
     with ch.no_grad():

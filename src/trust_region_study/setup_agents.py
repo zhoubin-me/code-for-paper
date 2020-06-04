@@ -21,7 +21,8 @@ PARAMS = {
     "advanced_logging": [True],
     "cpu": [True],
     "use_cons": ['all', 'kl', 'rew', 'none'],
-    "seed": [1,2,3,4,5]
+    "seed": [1,2,3,4,5],
+    "use_conj": [True, False]
 }
 
 all_configs = [{**BASE_CONFIG, **p} for p in dict_product(PARAMS)]
