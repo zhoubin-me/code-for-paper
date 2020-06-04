@@ -30,7 +30,7 @@ class Parameters():
     '''
     def __init__(self, params):
         self.params = params
-    
+
     def __getattr__(self, x):
         return self.params[x.lower()]
 
@@ -158,7 +158,7 @@ def safe_op_or_neg_one(maybe_empty, op):
 def discount_path(path, h):
     '''
     Given a "path" of items x_1, x_2, ... x_n, return the discounted
-    path, i.e. 
+    path, i.e.
     X_1 = x_1 + h*x_2 + h^2 x_3 + h^3 x_4
     X_2 = x_2 + h*x_3 + h^2 x_4 + h^3 x_5
     etc.
@@ -202,8 +202,8 @@ def get_path_indices(not_dones):
 
 def select_prob_dists(pds, selected=None, detach=True):
     '''
-    Given a tensor/tuple probability distributions, and 
-    some indices, select a subset of the distributions 
+    Given a tensor/tuple probability distributions, and
+    some indices, select a subset of the distributions
     `pds`s according to the indices `selected`.
     Inputs:
     - pds: list of propo
@@ -216,7 +216,7 @@ def select_prob_dists(pds, selected=None, detach=True):
         return tuple(x.detach() if detach else x for x in tup)
     out = pds[selected] if selected is not None else pds
     return out.detach() if detach else out
-        
+
 
 ########################
 ### POLICY GRADIENT HELPERS:
@@ -265,7 +265,7 @@ def cg_solve(fvp_func, b, nsteps):
     - An approximate solution x of Hx = b
     '''
     # Initialize the solution, residual, direction vectors
-    x = ch.zeros(b.size()) 
+    x = ch.zeros(b.size())
     r = b.clone()
     p = b.clone()
     new_rnorm = ch.dot(r,r)
@@ -280,7 +280,7 @@ def cg_solve(fvp_func, b, nsteps):
         p = r + ratio * p
     return x
 
-def backtracking_line_search(f, x, expected_improve_rate, 
+def backtracking_line_search(f, x, expected_improve_rate,
                              num_tries=10, accept_ratio=.1):
     '''
     Backtracking Line Search
@@ -296,8 +296,9 @@ def backtracking_line_search(f, x, expected_improve_rate,
         scaling = 2**(-i)
         scaled = x * scaling
         improve = f(scaled)
+        print(improve)
         expected_improve = expected_improve_rate * scaling
-        if improve/expected_improve > accept_ratio and improve > 0: 
+        if improve/expected_improve > accept_ratio and improve > 0:
             print("We good! %f" % (scaling,))
             return scaled
     return 0.
@@ -377,7 +378,7 @@ class RewardFilter:
         if self.clip:
             x = np.clip(x, -self.clip, self.clip)
         return x
-    
+
     def reset(self):
         self.ret = np.zeros_like(self.ret)
         self.prev_filter.reset()
@@ -416,8 +417,8 @@ class ZFilter:
 
 class StateWithTime:
     '''
-    Keeps track of the time t in an environment, and 
-    adds t/T as a dimension to the state, where T is the 
+    Keeps track of the time t in an environment, and
+    adds t/T as a dimension to the state, where T is the
     time horizon, given at initialization.
     '''
     def __init__(self, prev_filter, horizon):
@@ -463,7 +464,7 @@ class Trajectories:
             assert advantages is None or advantages.shape[0] == num_saps
 
             self.size = num_saps
-        
+
     def unroll(self):
         assert not self.unrolled
         return self.tensor_op(unroll, should_wrap=False)
