@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5f23ed0d-6589-4689-b7af-a7dcd0d0d4da" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/policy_gradients/steps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/policy_gradients/steps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/trust_region_study/setup_agents.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/trust_region_study/setup_agents.py" afterDir="false" />
     </list>
@@ -47,7 +48,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1591268991254</updated>
-      <workItem from="1591268995579" duration="1637000" />
+      <workItem from="1591268995579" duration="2501000" />
     </task>
     <task id="LOCAL-00001" summary="update for trust region study">
       <created>1591269665528</created>
