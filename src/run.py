@@ -8,6 +8,14 @@ import sys
 import json
 import torch
 from cox.store import Store, schema_from_dict
+import random
+
+def random_seed(seed=None):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.manual_seed(np.random.randint(int(1e6)))
 
 
 # Tee object allows for logging to both stdout and to file
@@ -84,6 +92,7 @@ def main(params):
 
     # The trainer object is in charge of sampling trajectories and
     # taking PPO/TRPO optimization steps
+    random_seed(params['seed'])
     p = Trainer.agent_from_params(params, store=store)
     rewards = []
 

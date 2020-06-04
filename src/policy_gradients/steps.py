@@ -206,9 +206,6 @@ def value_step(all_states, returns, advantages, not_dones, net,
             val_loss.backward()
             val_opt.step()
 
-
-
-
     return val_loss
 
 def ppo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, 
@@ -351,9 +348,19 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
             test_pds = net(all_states)
             test_action_log_probs = net.get_loglikelihood(test_pds, actions)
             new_reward = surrogate_reward(advs, new=test_action_log_probs, old=old_log_ps).mean()
-            if new_reward <= surr_rew or net.calc_kl(pds, test_pds).mean() > params.MAX_KL:
-                return -float('inf')
-            return new_reward - surr_rew
+            if params.USE_CONS == 'all':
+                if new_reward <= surr_rew or net.calc_kl(pds, test_pds).mean() > params.MAX_KL:
+                    return -float('inf')
+            elif params.USE_CONS == 'kl':
+                if net.calc_kl(pds, test_pds).mean() > params.MAX_KL:
+                    return -float('inf')
+            elif params.USE_CONS == 'rew':
+                if new_reward <= surr_rew:
+                    return -float('inf')
+            elif params.USE_CONS == 'none':
+                return new_reward - surr_rew
+            else:
+                raise NotImplementedError("No such constraints")
         expected_improve = flat_grad @ max_trpo_step
         final_step = backtracking_line_search(backtrack_fn, max_trpo_step,
                                               expected_improve,
