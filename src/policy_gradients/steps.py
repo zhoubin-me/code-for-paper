@@ -25,7 +25,7 @@ Layout of this file:
 '''
 def adv_normalize(adv):
     std = adv.std()
-    
+
     assert std != 0. and not ch.isnan(std), 'Need nonzero std'
     n_advs = (adv - adv.mean())/(adv.std()+1e-8)
     return n_advs
@@ -148,7 +148,7 @@ def value_step(all_states, returns, advantages, not_dones, net,
     - returns, discounted rewards (ret_t = r_t + gamma*ret_{t+1})
     - advantaages, estimated by GAE
     - not_dones, N * T array with 0s at final steps and 1s everywhere else
-    - net, the neural network representing the value function 
+    - net, the neural network representing the value function
     - val_opt, the optimizer for net
     - params, dictionary of parameters
     Returns:
@@ -163,8 +163,8 @@ def value_step(all_states, returns, advantages, not_dones, net,
         "gae": value_loss_gae,
         "time": value_loss_returns
     }
-         
-    # If we are not sharing weights, then we need to keep track of what the 
+
+    # If we are not sharing weights, then we need to keep track of what the
     # last value was here. If we are sharing weights, this is handled in policy_step
     orig_vs = net.get_value(all_states).squeeze(-1)
     if old_vs is None:
@@ -196,7 +196,7 @@ def value_step(all_states, returns, advantages, not_dones, net,
             val_loss = vf(vs, sel_rets, sel_advs, sel_not_dones, params,
                           sel_ovs, store)
 
-            # If we are sharing weights, then value_step gets called 
+            # If we are sharing weights, then value_step gets called
             # once per policy optimizer step anyways, so we only do one batch
             if params.SHARE_WEIGHTS:
                 return val_loss
@@ -208,7 +208,7 @@ def value_step(all_states, returns, advantages, not_dones, net,
 
     return val_loss
 
-def ppo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, 
+def ppo_step(all_states, actions, old_log_ps, rewards, returns, not_dones,
                 advs, net, params, store, opt_step):
     '''
     Proximal Policy Optimization
@@ -260,8 +260,8 @@ def ppo_step(all_states, actions, old_log_ps, rewards, returns, not_dones,
             surrogate = -ch.min(unclp_rew, clp_rew).mean()
             entropy = -params.ENTROPY_COEFF * entropy_bonus
             loss = surrogate + entropy
-            
-            # If we are sharing weights, take the value step simultaneously 
+
+            # If we are sharing weights, take the value step simultaneously
             # (since the policy and value networks depend on the same weights)
             if params.SHARE_WEIGHTS:
                 tup = sel(returns, not_dones, old_vs)
@@ -304,7 +304,7 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
     - params, additional placeholder for parameters like EPS
     Returns:
     - The TRPO loss; main job is to mutate the net
-    '''    
+    '''
     # Initial setup
     initial_parameters = flatten(net.parameters()).clone()
     pds = net(all_states)
@@ -318,10 +318,10 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
     # Make fisher product estimator
     num_samples = int(all_states.shape[0] * params.FISHER_FRAC_SAMPLES)
     selected = np.random.choice(range(all_states.shape[0]), num_samples, replace=False)
-    
+
     detached_selected_pds = select_prob_dists(pds, selected, detach=True)
     selected_pds = select_prob_dists(pds, selected, detach=False)
-    
+
     kl = net.calc_kl(detached_selected_pds, selected_pds).mean()
     g = flatten(ch.autograd.grad(kl, net.parameters(), create_graph=True))
     def fisher_product(x, damp_coef=1.):
@@ -358,9 +358,10 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
                 if new_reward <= surr_rew:
                     return -float('inf')
             elif params.USE_CONS == 'none':
-                return new_reward - surr_rew
+                pass
             else:
                 raise NotImplementedError("No such constraints")
+            return new_reward - surr_rew
         expected_improve = flat_grad @ max_trpo_step
         final_step = backtracking_line_search(backtrack_fn, max_trpo_step,
                                               expected_improve,
