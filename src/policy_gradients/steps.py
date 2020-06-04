@@ -342,7 +342,7 @@ def trpo_step(all_states, actions, old_log_ps, rewards, returns, not_dones, advs
             kl_approximation_logging(all_states, pds, flat_grad, step, net, store)
             kl_vs_second_order_approx(all_states, pds, net, max_trpo_step, params, store, opt_step)
     else:
-        max_trpo_step = flat_grad.clone() * params.PPO_LR
+        max_trpo_step = flat_grad.clone() * params.PPO_LR_ADAM
 
     # Backtracking line search
     with ch.no_grad():
